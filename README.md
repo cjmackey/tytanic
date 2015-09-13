@@ -1,2 +1,1 @@
-# tytanic
-Tytanic: It Syncs
+# Tytanic: It Syncs
