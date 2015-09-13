@@ -1,0 +1,7 @@
+{
+    "config": {
+      "blanket": {
+        "pattern": "tytanic/lib"
+      }
+    }
+}
