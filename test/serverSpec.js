@@ -87,9 +87,7 @@ describe('server', function() {
 
       it('gets ops in the case where there is no snapshot', function(done) {
         server.models.Op.create({objectId: randomId, opName: 'asdf'}).then(function() {
-          myServer.getSnapAndLogs(randomId).then(function(so) {
-            var snap = so[0];
-            var ops = so[1];
+          myServer.getSnapAndLogs(randomId).spread(function(snap, ops) {
             expect(ops.length).to.equal(1);
             expect(ops[0].opName.toString()).to.equal('asdf');
             done();
