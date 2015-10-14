@@ -98,6 +98,33 @@ describe('server', function() {
       // TODO: create a snapshot, then do it
     });
 
+    describe('receiveRedisMessage', function() {
+      it('updates subscribers', function(done) {
+        myServer.receiveMessage({
+          messageType: 'subscribe',
+          objectId: randomId,
+        }, conn).then(function() {
+          server.models.Op.create({objectId: randomId, args: JSON.stringify(['asdf', 'blah'])}).then(function(result) {
+            var opId = result.dataValues.id;
+            myServer.receiveRedisMessage('tytanic.op.' + randomId, JSON.stringify(0)).then(function() {
+              var expectedMessage = {
+                messageType: 'op',
+                op: {
+                  id: opId,
+                  objectId: randomId,
+                  opName: null,
+                  args:["asdf","blah"],
+                  clientNonce:null
+                }
+              };
+              expect(JSON.parse(conn.write.args[1][0])).to.deep.equal(expectedMessage);
+              done();
+            });
+          });
+        });
+      });
+    });
+
     describe('receiveMessage', function() {
 
       it('receives an op message', function(done) {
