@@ -112,7 +112,7 @@ describe('server', function() {
                 op: {
                   id: opId,
                   objectId: randomId,
-                  opName: null,
+                  opName: '',
                   args:["asdf","blah"],
                   clientNonce:null
                 }
