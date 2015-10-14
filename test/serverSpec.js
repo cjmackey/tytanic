@@ -99,7 +99,8 @@ describe('server', function() {
     });
 
     describe('receiveRedisMessage', function() {
-      it('updates subscribers', function(done) {
+
+      it('updates subscribers with op', function(done) {
         myServer.receiveMessage({
           messageType: 'subscribe',
           objectId: randomId,
@@ -125,6 +126,33 @@ describe('server', function() {
           });
         });
       });
+
+      it('updates subscribers with snap', function(done) {
+        myServer.receiveMessage({
+          messageType: 'subscribe',
+          objectId: randomId,
+        }, conn).then(function() {
+          server.models.Op.create({
+            objectId: randomId,
+            opName: 'set',
+            args: JSON.stringify(['asdf', 'blah'])
+          }).then(function(result) {
+            myServer.createSnap(randomId).then(function(snap) {
+              myServer.receiveRedisMessage('tytanic.snap.' + randomId, JSON.stringify(snap)).then(function() {
+                var expectedMessage = {
+                  messageType: 'snap',
+                  snap: server.cleanseSnap(snap),
+                };
+                console.log(expectedMessage);
+                console.log(JSON.parse(conn.write.args[1][0]));
+                expect(JSON.parse(conn.write.args[1][0])).to.deep.equal(expectedMessage);
+                done();
+              });
+            });
+          });
+        });
+      });
+
     });
 
     describe('receiveMessage', function() {
