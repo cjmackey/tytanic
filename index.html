@@ -7,72 +7,69 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.js"></script>
     <script src="/op.js"></script>
     <script src="/client.js"></script>
-    <style>
-      .box {
-          width: 300px;
-          float: left;
-          margin: 0 20px 0 20px;
-      }
-      .box div, .box input {
-          border: 1px solid;
-          -moz-border-radius: 4px;
-          border-radius: 4px;
-          width: 100%;
-          padding: 0px;
-          margin: 5px;
-      }
-      .box div {
-          border-color: grey;
-          height: 300px;
-          overflow: auto;
-      }
-      .box input {
-          height: 30px;
-      }
-      h1 {
-          margin-left: 30px;
-      }
-      body {
-          background-color: #F0F0F0;
-          font-family: "Arial";
-      }
-    </style>
-</head><body lang="en">
-    <h1>SockJS Express example</h1>
 
-    <div id="first" class="box">
-      <div></div>
-      <form><input autocomplete="off" value="Type here..."></input></form>
+<style>
+.color-button {
+float: left; width: 50px; height: 50px; line-height: 50px; margin: 25px;
+background-color: white;
+text-align: center;
+}
+</style>
+
+</head><body lang="en">
+    <h1>Tytanic Example</h1>
+
+    <div id="top" style="width: 300px; height: 100px; background-color: black">
+      <div id="topRedButton" class="color-button">
+        R
+      </div>
+      <div id="topGreenButton" class="color-button">
+        G
+      </div>
+      <div id="topBlueButton" class="color-button">
+        B
+      </div>
+    </div>
+    <div id="bottom" style="width: 300px; height: 100px; background-color: black">
+      <div id="bottomRedButton" class="color-button">
+        R
+      </div>
+      <div id="bottomGreenButton" class="color-button">
+        G
+      </div>
+      <div id="bottomBlueButton" class="color-button">
+        B
+      </div>
     </div>
 
     <script>
-    var cli = new tytanic.client.Client();
-    cli.init();
-        var sockjs_url = '/sock';
-        var sockjs = new SockJS(sockjs_url);
-        $('#first input').focus();
+      var cli = new tytanic.client.Client();
+      cli.changeHandler = function() {
+        asdf = cli.objects.asdf || {};
+        $('#top').css('background-color', asdf.topColor || 'black');
+        $('#bottom').css('background-color', asdf.bottomColor || 'black');
+      };
+      cli.subscribe('asdf');
+      cli.init();
 
-        var div  = $('#first div');
-        var inp  = $('#first input');
-        var form = $('#first form');
+      $('#topRedButton').click(function() {
+        cli.run('set', 'asdf', ['topColor', 'red']);
+      });
+      $('#topGreenButton').click(function() {
+        cli.run('set', 'asdf', ['topColor', 'green']);
+      });
+      $('#topBlueButton').click(function() {
+        cli.run('set', 'asdf', ['topColor', 'blue']);
+      });
 
-        var print = function(m, p) {
-            p = (p === undefined) ? '' : JSON.stringify(p);
-            div.append($("<code>").text(m + ' ' + p));
-            div.append($("<br>"));
-            div.scrollTop(div.scrollTop()+10000);
-        };
-
-        sockjs.onopen    = function()  {print('[*] open', sockjs.protocol);};
-        sockjs.onmessage = function(e) {print('[.] message', e.data);};
-        sockjs.onclose   = function()  {print('[*] close');};
-
-        form.submit(function() {
-            print('[ ] sending', inp.val());
-            sockjs.send(inp.val());
-            inp.val('');
-            return false;
-        });
-
+      $('#bottomRedButton').click(function() {
+        cli.run('set', 'asdf', ['bottomColor', 'red']);
+      });
+      $('#bottomGreenButton').click(function() {
+        cli.run('set', 'asdf', ['bottomColor', 'green']);
+      });
+      $('#bottomBlueButton').click(function() {
+        cli.run('set', 'asdf', ['bottomColor', 'blue']);
+      });
     </script>
 </body></html>
