@@ -42,7 +42,7 @@ describe('client', function() {
   });
 
   describe('receiveOp', function() {
-    it('applies the op in a simple case...', function() {
+    it('applies the op and adds it to localStorage', function() {
       expect(myClient.objects.asdf).to.equal(undefined);
       myClient.receiveOp({
         id: 23,
@@ -52,11 +52,13 @@ describe('client', function() {
         args: ['k', 'v'],
       });
       expect(myClient.objects.asdf.k).to.equal('v');
+      expect(JSON.parse(fauxLocalStorage['tytanic.ops.asdf.0000000000000017']).id).to.equal(23);
     });
   });
 
   describe('receiveSnap', function() {
-    it('sets the snap in a simple case...', function() {
+
+    it('sets the snap and adds it to localStorage', function() {
       expect(myClient.objects.asdf).to.equal(undefined);
       myClient.receiveSnap({
         id: 12,
@@ -65,7 +67,27 @@ describe('client', function() {
         data: {k: 'v'},
       });
       expect(myClient.objects.asdf.k).to.equal('v');
+      expect(JSON.parse(fauxLocalStorage['tytanic.snaps.asdf']).id).to.equal(12);
     });
+
+    it('clears out any ops that are at least as old, but not newer ones', function() {
+      myClient.receiveOp({ id: 22, objectId: 'asdf' });
+      expect(fauxLocalStorage['tytanic.ops.asdf.0000000000000016']).to.not.equal(undefined);
+      myClient.receiveOp({ id: 23, objectId: 'asdf' });
+      expect(fauxLocalStorage['tytanic.ops.asdf.0000000000000017']).to.not.equal(undefined);
+      myClient.receiveOp({ id: 24, objectId: 'asdf' });
+      expect(fauxLocalStorage['tytanic.ops.asdf.0000000000000018']).to.not.equal(undefined);
+      myClient.receiveSnap({
+        id: 12,
+        opId: 23,
+        objectId: 'asdf',
+        data: {k: 'v'},
+      });
+      expect(fauxLocalStorage['tytanic.ops.asdf.0000000000000016']).to.equal(undefined);
+      expect(fauxLocalStorage['tytanic.ops.asdf.0000000000000017']).to.equal(undefined);
+      expect(fauxLocalStorage['tytanic.ops.asdf.0000000000000018']).to.not.equal(undefined);
+    });
+
   });
 
   describe('subscribe', function() {
