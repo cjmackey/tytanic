@@ -106,15 +106,17 @@ describe('server', function() {
         }, conn).then(function() {
           server.models.Op.create({objectId: randomId, args: JSON.stringify(['asdf', 'blah'])}).then(function(result) {
             var opId = result.dataValues.id;
-            myServer.receiveRedisMessage('tytanic.op.' + randomId, JSON.stringify(0)).then(function() {
+            var op = result.dataValues;
+            server.cleanseOp(op);
+            myServer.receiveRedisMessage('tytanic.op.' + randomId, JSON.stringify(op)).then(function() {
               var expectedMessage = {
                 messageType: 'op',
                 op: {
                   id: opId,
                   objectId: randomId,
                   opName: '',
-                  args:["asdf","blah"],
-                  clientNonce:null
+                  args: ["asdf","blah"],
+                  clientNonce: '',
                 }
               };
               expect(JSON.parse(conn.write.args[1][0])).to.deep.equal(expectedMessage);
@@ -148,16 +150,18 @@ describe('server', function() {
         }, conn).then(function() {
           expect(myServer.subscriptions[randomId].subscribers[conn.id]).to.equal(conn);
           expect(myServer.connectionSubs[conn.id][randomId]).to.equal(true);
-          expect(myServer.subRedis.subscribe.calledWith('tytanic.ops.' + randomId)).to.equal(true);
-          console.log(conn.write.args);
-          expect(conn.write.calledWith(JSON.stringify({
+          expect(myServer.subRedis.subscribe.calledWith('tytanic.op.' + randomId)).to.equal(true);
+          var expected = {
             messageType: 'snap',
             snap: {
               objectId:randomId,
               opId: null,
               data:{}
             },
-          }))).to.equal(true);
+          };
+          console.log(conn.write.args);
+          console.log(expected);
+          expect(conn.write.calledWith(JSON.stringify(expected))).to.equal(true);
           done();
         });
       });
@@ -175,7 +179,7 @@ describe('server', function() {
             console.log(myServer.connectionSubs);
             expect(myServer.subscriptions[randomId]).to.equal(undefined);
             expect(myServer.connectionSubs[conn.id][randomId]).to.equal(undefined);
-            expect(myServer.subRedis.unsubscribe.calledWith('tytanic.ops.' + randomId)).to.equal(true);
+            expect(myServer.subRedis.unsubscribe.calledWith('tytanic.op.' + randomId)).to.equal(true);
             done();
           });
         });
